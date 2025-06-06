@@ -21,21 +21,7 @@ def calculate_hash(key, base=31, mod=10**9): #baseは7以降の素数を使う�
         hash = (hash * base + ord(i)) % mod # これで文字列の順番も考慮したハッシュ値を作れるので衝突しないはず。
     return hash
 
-def is_prime(n): #hash tableの大きさを素数にしたいので素数を見つける。
-        if n < 2:
-            return False
-        z = n - 1
-        while n % z != 0:
-            z -= 1
-            if z == 1:
-                return True
-        return False 
-    
-def get_prime(new_bucket_size_candidate): # hash tableサイズ値候補より大きい数字で一番小さい素数を探す
-        while True:
-            if is_prime(new_bucket_size_candidate):
-                return new_bucket_size_candidate
-            new_bucket_size_candidate += 1
+
 # An item object that represents one key - value pair in the hash table.
 # 再ハッシュにO(N^2)かかってしまう
 
@@ -44,9 +30,10 @@ class Item:
     # |value|: The value of the item.
     # |next|: The next item in the linked list. If this is the last item in the
     #         linked list, |next| is None.
-    def __init__(self, key, value, next):
+    def __init__(self, key, value, next, hash):
         assert type(key) == str
         self.key = key
+        self.hash = calculate_hash(hash)
         self.value = value
         self.next = next
     
@@ -70,7 +57,7 @@ class HashTable:
     def rehash_double(self):
         old_buckets = self.buckets
         old_bucket_size = self.bucket_size
-        new_bucket_size = get_prime(old_bucket_size * 2)
+        new_bucket_size = (old_bucket_size * 2) + 1
 
         self.bucket_size = new_bucket_size
         self.buckets = [None] * self.bucket_size
@@ -86,7 +73,7 @@ class HashTable:
     def rehash_shrink(self):
         old_buckets = self.buckets
         old_bucket_size = self.bucket_size
-        new_bucket_size = get_prime(old_bucket_size // 2)
+        new_bucket_size = (old_bucket_size // 2) + 1
         
         self.bucket_size = new_bucket_size
         self.buckets = [None] * self.bucket_size

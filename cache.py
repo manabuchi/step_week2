@@ -1,38 +1,78 @@
 import sys
+from hash_table import HashTable #クラスを呼び出せば十分
 
 # Implement a data structure that stores the most recently accessed N pages.
 # See the below test cases to see how it should work.
 #
 # Note: Please do not use a library like collections.OrderedDict). The goal is
 #       to implement the data structure yourself!
+class Node:
+    def __init__(self, url, content):
+        self.url = url            
+        self.content = content
+        self.prev = None          
+        self.next = None          
 
 class Cache:
     # Initialize the cache.
     # |n|: The size of the cache.
     def __init__(self, n):
-        #------------------------#
-        # Write your code here!  #
-        #------------------------#
-        pass
+        self.capacity = n 
+        self.cache_map = HashTable()
+        self.head = Node(None, None)  
+        self.tail = Node(None, None)  
+        self.head.next = self.tail
+        self.tail.prev = self.head
+        self.size = 0
 
     # Access a page and update the cache so that it stores the most recently
     # accessed N pages. This needs to be done with mostly O(1).
     # |url|: The accessed URL
     # |contents|: The contents of the URL
     def access_page(self, url, contents):
-        #------------------------#
-        # Write your code here!  #
-        #------------------------#
-        pass
+        cache_entry, exist= self.cache_map.get(url)
+        if exist:
+            self.remove_node(cache_entry)
+            self.add_node_to_front(cache_entry)
+        else:
+            new_node = Node(url, contents)
+            self.add_node_to_front(new_node)
+            self.cache_map.put(url, new_node)
+            self.size += 1
+            if self.capacity < self.size:
+                self.remove_tail()
 
     # Return the URLs stored in the cache. The URLs are ordered in the order
     # in which the URLs are mostly recently accessed.
     def get_pages(self):
-        #------------------------#
-        # Write your code here!  #
-        #------------------------#
-        pass
+        result = []
+        node = self.head.next
+        while node != self.tail:
+            result.append(node.url)
+            node = node.next
+        return result 
+    
+    def add_node_to_front(self, node):
+        prev = self.head
+        nxt = self.head.next
+        node.prev = prev 
+        node.next = nxt 
+        prev.next = node 
+        nxt.prev = node 
 
+    def remove_node(self, node):
+        prev = node.prev
+        nxt = node.next 
+        prev.next = nxt
+        nxt.prev = prev 
+        
+    def remove_tail(self):
+        oldest_node = self.tail.prev
+        if oldest_node == self.head:
+            return 
+        self.remove_node(oldest_node)
+        self.cache_map.delete(oldest_node.url)
+        self.size -= 1
 
 def cache_test():
     # Set the size of the cache to 4.
